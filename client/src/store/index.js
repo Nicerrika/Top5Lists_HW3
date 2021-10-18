@@ -19,7 +19,7 @@ export const GlobalStoreActionType = {
     CLOSE_CURRENT_LIST: "CLOSE_CURRENT_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
-    SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
+    //SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE"
 }
 
@@ -36,7 +36,7 @@ export const useGlobalStore = () => {
         newListCounter: 0,
         listNameActive: false,
         itemActive: false,
-        listMarkedForDeletion: null
+        listMarkedForDeletion: null,
     });
 
     // HERE'S THE DATA STORE'S REDUCER, IT MUST
@@ -51,9 +51,8 @@ export const useGlobalStore = () => {
                     currentList: payload.top5List,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 });
             }
             //Item UPDATE OF ITS NAME
@@ -63,9 +62,8 @@ export const useGlobalStore = () => {
                     currentList: payload.top5List,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 });
             }
             // STOP EDITING THE CURRENT LIST
@@ -75,9 +73,8 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 })
             }
             // GET ALL THE LISTS SO WE CAN PRESENT THEM
@@ -87,9 +84,8 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 });
             }
             // UPDATE A LIST
@@ -99,9 +95,8 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 });
             }
             // START EDITING A LIST NAME
@@ -111,23 +106,22 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: true,
-                    isItemEditActive: false,
+                    //isItemEditActive: false,
                     listMarkedForDeletion: null,
-                    isItemEditActive: false
                 });
             }
             // START EDITING A ITEM NAME
-            case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE: {
-                return setStore({
-                    idNamePairs: store.idNamePairs,
-                    currentList: store.currentList,
-                    newListCounter: store.newListCounter,
-                    isListNameEditActive: false,
-                    isItemEditActive: false,
-                    listMarkedForDeletion: null,
-                    isItemEditActive: true
-                });
-            }
+            // case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE: {
+            //     return setStore({
+            //         idNamePairs: store.idNamePairs,
+            //         currentList: store.currentList,
+            //         newListCounter: store.newListCounter,
+            //         isListNameEditActive: false,
+            //         isItemEditActive: false,
+            //         listMarkedForDeletion: null,
+            //         isItemEditActive: true
+            //     });
+            // }
             default:
                 return store;
         }
@@ -207,6 +201,9 @@ export const useGlobalStore = () => {
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
         });
+        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
+        tps.clearAllTransactions();
+        store.UpdateDisableControl();
     }
     // This Function is to create new list
     store.CreateNewList = function (){
@@ -245,6 +242,8 @@ export const useGlobalStore = () => {
                 console.log("API FAILED TO GET THE LIST PAIRS");
             }
         }
+        store.UpdateDisableControl();
+        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
         asyncLoadIdNamePairs();
     }
 
@@ -271,10 +270,14 @@ export const useGlobalStore = () => {
             }
             asyncSetCurrentList(id);
         }
+        store.UpdateDisableControl();
+        document.getElementById("close-button").classList.replace("top5-button-disabled","top5-button");
+        console.log(store.currentList);
     }
     store.addMoveItemTransaction = function (start, end) {
         let transaction = new MoveItem_Transaction(store, start, end);
         tps.addTransaction(transaction);
+        store.UpdateDisableControl();
     }
     store.addChangeItemTranscation = function (index,newName){
         let oldName=store.currentList.items[index];
@@ -282,6 +285,7 @@ export const useGlobalStore = () => {
             let transaction =new ChangeItem_Transaction(store,index,oldName,newName);
             tps.addTransaction(transaction);
         }
+        store.UpdateDisableControl();
     }
     store.moveItem = function (start, end) {
         start -= 1;
@@ -318,9 +322,11 @@ export const useGlobalStore = () => {
     }
     store.undo = function () {
         tps.undoTransaction();
+        store.UpdateDisableControl();
     }
     store.redo = function () {
         tps.doTransaction();
+        store.UpdateDisableControl();
     }
 
     // THIS FUNCTION ENABLES THE PROCESS OF EDITING A LIST NAME
@@ -331,17 +337,26 @@ export const useGlobalStore = () => {
         });
     }
 
-    store.setIsItemNameEditActive = function () {
-        console.log("lol");
-        storeReducer({
-            type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE,
-            payload: null
-        });
-    }
+    // store.setIsItemNameEditActive = function () {
+    //     console.log("lol");
+    //     storeReducer({
+    //         type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE,
+    //         payload: null
+    //     });
+    // }
     // THIS FUNCTION IS TO SHOW THE delete
     store.deleteMarkedList = function(){
-        let modal = document.getElementById("delete-modal");
-        modal.classList.add("is-visible");
+        // let id=store.currentList._id
+        // console.log(id);
+        // async function asyncdeleteMarkedList(id) {
+        //     const response = await api.deleteTop5ListById(id);
+        //     if (response.data.success) {
+        //         // storeReducer({
+        //         //     payload: store.currentList
+        //         // });
+        //     }
+        // }
+        // asyncdeleteMarkedList(id);
     }
 
     store.ShowDeleteListModal = function(){
@@ -354,9 +369,36 @@ export const useGlobalStore = () => {
         modal.classList.remove("is-visible");
     }
 
-    store.DeleteList = function(idNamePairs){
+    store.DeleteList = function(idNamePair){
         store.ShowDeleteListModal();
+        // console.log(store.currentList);
+        // console.log(store.idNamePairs);
+        // console.log(idNamePair);
+        // return setStore({
+        //     currentList: idNamePair,
+        // });
     }
+
+    store.UpdateDisableControl = function(){
+        if(tps.hasTransactionToRedo()){
+            console.log("Can redo");
+            document.getElementById("redo-button").classList.replace("top5-button-disabled","top5-button");
+        }
+        else{
+            console.log("Can not redo");
+            document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
+        }
+
+        if(tps.hasTransactionToUndo()){
+            console.log("Can undo");
+            document.getElementById("undo-button").classList.replace("top5-button-disabled","top5-button");
+        }
+        else{
+            console.log("Can not undo");
+            document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
+        }
+    }
+
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };
 }
