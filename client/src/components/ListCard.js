@@ -51,8 +51,8 @@ function ListCard(props) {
         setText(event.target.value );
     }
 
-    function DeleteList(event){
-
+    function HandleDeleteList(event){
+        store.DeleteList(props.idNamePair)
     }
 
     let selectClass = "unselected-list-card";
@@ -80,7 +80,7 @@ function ListCard(props) {
                 type="button"
                 id={"delete-list-" + idNamePair._id}
                 className="list-card-button"
-                onClick={DeleteList}
+                onClick={HandleDeleteList}
                 value={"\u2715"}
             />
             <input

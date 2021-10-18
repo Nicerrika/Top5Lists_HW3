@@ -341,8 +341,21 @@ export const useGlobalStore = () => {
     // THIS FUNCTION IS TO SHOW THE delete
     store.deleteMarkedList = function(){
         let modal = document.getElementById("delete-modal");
-        console.log(modal);
         modal.classList.add("is-visible");
+    }
+
+    store.ShowDeleteListModal = function(){
+        let modal = document.getElementById("delete-modal");
+        modal.classList.add("is-visible");
+    }
+
+    store.hideDeleteListModal = function(){
+        let modal = document.getElementById("delete-modal");
+        modal.classList.remove("is-visible");
+    }
+
+    store.DeleteList = function(idNamePairs){
+        store.ShowDeleteListModal();
     }
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };
