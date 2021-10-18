@@ -9,6 +9,8 @@ import { GlobalStoreContext } from '../store'
 function Top5Item(props) {
     const { store } = useContext(GlobalStoreContext);
     const [draggedTo, setDraggedTo] = useState(0);
+    const [ editActive, setEditActive ] = useState(false);
+    const [ text, setText ] = useState("");
 
     function handleDragStart(event) {
         event.dataTransfer.setData("item", event.target.id);
@@ -40,14 +42,43 @@ function Top5Item(props) {
         // UPDATE THE LIST
         store.addMoveItemTransaction(sourceId, targetId);
     }
+    //handle edit
+    function handleToggleEdit(event) {
+        event.stopPropagation();
+        toggleEdit();
+    }
+
+    function toggleEdit() {
+        let newActive = !editActive;
+        if (newActive) {
+            store.setIsItemNameEditActive();
+        }
+        setEditActive(newActive);
+    }
+
+    function handleKeyPress(event) {
+        console.log(props.index);
+        if (event.code === "Enter") {
+            store.addChangeItemTranscation(props.index, text);
+            //store.changeItemName(props.index,text);
+            toggleEdit();
+        }
+    }
+
+    function handleUpdateText(event) {
+        setText(event.target.value );
+    }
 
     let { index } = props;
     let itemClass = "top5-item";
     if (draggedTo) {
         itemClass = "top5-item-dragged-to";
     }
-    return (
-        <div
+    // let cardStatus = false;
+    // if (store.isItemEditActive) {
+    //     cardStatus = true;
+    // }
+    let Itemelement=<div
             id={'item-' + (index + 1)}
             className={itemClass}
             onDragStart={handleDragStart}
@@ -62,9 +93,24 @@ function Top5Item(props) {
                 id={"edit-item-" + index + 1}
                 className="list-card-button"
                 value={"\u270E"}
+                onClick={handleToggleEdit}
             />
             {props.text}
-        </div>)
+        </div>;
+    if (editActive) {
+        Itemelement=
+        <input
+                id={"item-" + index + 1}
+                className={itemClass}
+                type='text'
+                onKeyPress={handleKeyPress}
+                onChange={handleUpdateText}
+                defaultValue={props.text}
+            />;
+    }
+    return (
+        Itemelement
+    );
 }
 
 export default Top5Item;

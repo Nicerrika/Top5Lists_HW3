@@ -2,6 +2,7 @@ import { createContext, useState } from 'react'
 import jsTPS from '../common/jsTPS'
 import api from '../api'
 import MoveItem_Transaction from '../transactions/MoveItem_Transaction'
+import ChangeItem_Transaction from '../transactions/ChangeItem_Transactions';
 export const GlobalStoreContext = createContext({});
 /*
     This is our global data store. Note that it uses the Flux design pattern,
@@ -14,9 +15,11 @@ export const GlobalStoreContext = createContext({});
 // DATA STORE STATE THAT CAN BE PROCESSED
 export const GlobalStoreActionType = {
     CHANGE_LIST_NAME: "CHANGE_LIST_NAME",
+    CHANGE_ITEM_NAME: "CHANGE_ITEM_NAME",
     CLOSE_CURRENT_LIST: "CLOSE_CURRENT_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
+    SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE"
 }
 
@@ -49,7 +52,20 @@ export const useGlobalStore = () => {
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
-                    listMarkedForDeletion: null
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
+                });
+            }
+            //Item UPDATE OF ITS NAME
+            case GlobalStoreActionType.CHANGE_ITEM_NAME: {
+                return setStore({
+                    idNamePairs: payload.idNamePairs,
+                    currentList: payload.top5List,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
                 });
             }
             // STOP EDITING THE CURRENT LIST
@@ -60,7 +76,8 @@ export const useGlobalStore = () => {
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
-                    listMarkedForDeletion: null
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
                 })
             }
             // GET ALL THE LISTS SO WE CAN PRESENT THEM
@@ -71,7 +88,8 @@ export const useGlobalStore = () => {
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
-                    listMarkedForDeletion: null
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
                 });
             }
             // UPDATE A LIST
@@ -82,7 +100,8 @@ export const useGlobalStore = () => {
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
-                    listMarkedForDeletion: null
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
                 });
             }
             // START EDITING A LIST NAME
@@ -93,7 +112,20 @@ export const useGlobalStore = () => {
                     newListCounter: store.newListCounter,
                     isListNameEditActive: true,
                     isItemEditActive: false,
-                    listMarkedForDeletion: null
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
+                });
+            }
+            // START EDITING A ITEM NAME
+            case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null,
+                    isItemEditActive: true
                 });
             }
             default:
@@ -107,6 +139,8 @@ export const useGlobalStore = () => {
     // THIS FUNCTION PROCESSES CHANGING A LIST NAME
     store.changeListName = function (id, newName) {
         // GET THE LIST
+        console.log(newName);
+        if (newName!==""){
         async function asyncChangeListName(id) {
             let response = await api.getTop5ListById(id);
             if (response.data.success) {
@@ -136,6 +170,36 @@ export const useGlobalStore = () => {
         }
         asyncChangeListName(id);
     }
+    }
+    //This Function processes changind the item name
+    store.changeItemName = function (index, newName) {
+        // GET THE LIST
+        async function asyncChangeItemName() {
+            let  top5List= store.currentList;
+            top5List.items[index]=newName;
+                async function updateList(top5List) {
+                    let response = await api.updateTop5ListById(top5List._id, top5List);
+                    if (response.data.success) {
+                        async function getListPairs(top5List) {
+                            response = await api.getTop5ListPairs();
+                            if (response.data.success) {
+                                let pairsArray = response.data.idNamePairs;
+                                storeReducer({
+                                    type: GlobalStoreActionType.CHANGE_LIST_NAME,
+                                    payload: {
+                                        idNamePairs: pairsArray,
+                                        top5List: top5List
+                                    }
+                                });
+                            }
+                        }
+                        getListPairs(top5List);
+                    }
+                }
+                updateList(top5List);
+        }
+        asyncChangeItemName();
+    }
 
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
@@ -144,7 +208,28 @@ export const useGlobalStore = () => {
             payload: {}
         });
     }
-
+    // This Function is to create new list
+    store.CreateNewList = function (){
+        async function asyncCreateNewList() {
+            let NewList={
+                "name": "Untitled",
+                "items":[
+                    "?",
+                    "?",
+                    "?",
+                    "?",
+                    "?"
+                ]
+            }
+            const response = await api.createTop5List(NewList);
+            if (response.data.success) {
+                console.log(response);
+                store.loadIdNamePairs();
+                store.setCurrentList(response.data.top5List._id);
+            }
+        }
+        asyncCreateNewList();
+    }
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS
     store.loadIdNamePairs = function () {
         async function asyncLoadIdNamePairs() {
@@ -168,26 +253,35 @@ export const useGlobalStore = () => {
     // FUNCTIONS ARE setCurrentList, addMoveItemTransaction, addUpdateItemTransaction,
     // moveItem, updateItem, updateCurrentList, undo, and redo
     store.setCurrentList = function (id) {
-        async function asyncSetCurrentList(id) {
-            let response = await api.getTop5ListById(id);
-            if (response.data.success) {
-                let top5List = response.data.top5List;
-
-                response = await api.updateTop5ListById(top5List._id, top5List);
+        if (id.search("-") === -1){
+            async function asyncSetCurrentList(id) {
+                let response = await api.getTop5ListById(id);
                 if (response.data.success) {
-                    storeReducer({
-                        type: GlobalStoreActionType.SET_CURRENT_LIST,
-                        payload: top5List
-                    });
-                    store.history.push("/top5list/" + top5List._id);
+                    let top5List = response.data.top5List;
+
+                    response = await api.updateTop5ListById(top5List._id, top5List);
+                    if (response.data.success) {
+                        storeReducer({
+                            type: GlobalStoreActionType.SET_CURRENT_LIST,
+                            payload: top5List
+                        });
+                        store.history.push("/top5list/" + top5List._id);
+                    }
                 }
             }
+            asyncSetCurrentList(id);
         }
-        asyncSetCurrentList(id);
     }
     store.addMoveItemTransaction = function (start, end) {
         let transaction = new MoveItem_Transaction(store, start, end);
         tps.addTransaction(transaction);
+    }
+    store.addChangeItemTranscation = function (index,newName){
+        let oldName=store.currentList.items[index];
+        if (newName!=""){
+            let transaction =new ChangeItem_Transaction(store,index,oldName,newName);
+            tps.addTransaction(transaction);
+        }
     }
     store.moveItem = function (start, end) {
         start -= 1;
@@ -237,6 +331,19 @@ export const useGlobalStore = () => {
         });
     }
 
+    store.setIsItemNameEditActive = function () {
+        console.log("lol");
+        storeReducer({
+            type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE,
+            payload: null
+        });
+    }
+    // THIS FUNCTION IS TO SHOW THE delete
+    store.deleteMarkedList = function(){
+        let modal = document.getElementById("delete-modal");
+        console.log(modal);
+        modal.classList.add("is-visible");
+    }
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };
 }
