@@ -122,6 +122,16 @@ export const useGlobalStore = () => {
             //         isItemEditActive: true
             //     });
             // }
+            case GlobalStoreActionType.Delete_Marked_List:{
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: null,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: payload
+                });
+            }
             default:
                 return store;
         }
@@ -286,6 +296,11 @@ export const useGlobalStore = () => {
             tps.addTransaction(transaction);
         }
         store.UpdateDisableControl();
+        for (let i=0;i<5;i++){
+            if(index!=i){
+                document.getElementById("edit-item-" + i + 1).classList.remove("top5-button-disabled");
+            }
+        }
     }
     store.moveItem = function (start, end) {
         start -= 1;
@@ -344,19 +359,20 @@ export const useGlobalStore = () => {
     //         payload: null
     //     });
     // }
+
     // THIS FUNCTION IS TO SHOW THE delete
     store.deleteMarkedList = function(){
-        // let id=store.currentList._id
-        // console.log(id);
-        // async function asyncdeleteMarkedList(id) {
-        //     const response = await api.deleteTop5ListById(id);
-        //     if (response.data.success) {
-        //         // storeReducer({
-        //         //     payload: store.currentList
-        //         // });
-        //     }
-        // }
-        // asyncdeleteMarkedList(id);
+        let id=store.listMarkedForDeletion._id
+        console.log(id);
+        async function asyncdeleteMarkedList(id) {
+            const response = await api.deleteTop5ListById(id);
+            if (response.data.success) {
+                store.loadIdNamePairs();
+                store.closeCurrentList();
+                store.hideDeleteListModal();
+            }
+        }
+        asyncdeleteMarkedList(id);
     }
 
     store.ShowDeleteListModal = function(){
@@ -369,32 +385,33 @@ export const useGlobalStore = () => {
         modal.classList.remove("is-visible");
     }
 
-    store.DeleteList = function(idNamePair){
+    store.DeleteList = function(id){
         store.ShowDeleteListModal();
-        // console.log(store.currentList);
-        // console.log(store.idNamePairs);
-        // console.log(idNamePair);
-        // return setStore({
-        //     currentList: idNamePair,
-        // });
+        async function asyncDeleteList(id) {
+            let response= await api.getTop5ListById(id);
+            let top5List=response.data.top5List
+            if (response.data.success){
+                storeReducer({
+                    type:GlobalStoreActionType.Delete_Marked_List,
+                    payload:top5List
+                });
+            }
+        }
+        asyncDeleteList(id)
     }
 
     store.UpdateDisableControl = function(){
         if(tps.hasTransactionToRedo()){
-            console.log("Can redo");
             document.getElementById("redo-button").classList.replace("top5-button-disabled","top5-button");
         }
         else{
-            console.log("Can not redo");
             document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
         }
 
         if(tps.hasTransactionToUndo()){
-            console.log("Can undo");
             document.getElementById("undo-button").classList.replace("top5-button-disabled","top5-button");
         }
         else{
-            console.log("Can not undo");
             document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
         }
     }

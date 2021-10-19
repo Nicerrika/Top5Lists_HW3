@@ -52,7 +52,7 @@ function ListCard(props) {
     }
 
     function HandleDeleteList(event){
-        store.DeleteList(props.idNamePair)
+        store.DeleteList(props.idNamePair._id)
     }
 
     let selectClass = "unselected-list-card";

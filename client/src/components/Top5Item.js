@@ -45,6 +45,15 @@ function Top5Item(props) {
     //handle edit
     function handleToggleEdit(event) {
         event.stopPropagation();
+        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
+        document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
+        document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
+        for (let i=0;i<5;i++){
+            if (i!==props.index){
+                document.getElementById("edit-item-" + i + 1).classList.add("top5-button-disabled");
+            }
+        }
+        console.log("edit-item-" + props.index + 1);
         toggleEdit();
     }
 
@@ -62,6 +71,7 @@ function Top5Item(props) {
             store.addChangeItemTranscation(props.index, text);
             //store.changeItemName(props.index,text);
             toggleEdit();
+            document.getElementById("close-button").classList.replace("top5-button-disabled","top5-button");
         }
     }
 

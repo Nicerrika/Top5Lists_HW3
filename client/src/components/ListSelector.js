@@ -21,6 +21,8 @@ const ListSelector = () => {
     }
     let listCard = "";
     if (store) {
+        console.log("lol");
+        console.log(store.idNamePairs);
         listCard = store.idNamePairs.map((pair) => (
             <ListCard
                 key={pair._id}
