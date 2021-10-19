@@ -17,12 +17,13 @@ const ListSelector = () => {
     }, []);
 
     function HandleCreateNewList(event) {
-        store.CreateNewList();
+        if(!store.isListNameEditActive){
+            store.CreateNewList();
+        }
     }
     let listCard = "";
     if (store) {
-        console.log("lol");
-        console.log(store.idNamePairs);
+        //console.log("lol");
         listCard = store.idNamePairs.map((pair) => (
             <ListCard
                 key={pair._id}
@@ -37,7 +38,7 @@ const ListSelector = () => {
                 <input
                     type="button"
                     id="add-list-button"
-                    className="top5-button"
+                    className={store.isListNameEditActive ? "top5-button-disabled":"top5-button"}
                     onClick={HandleCreateNewList}
                     value="+" />
                 Your Lists

@@ -13,55 +13,64 @@ function Top5Item(props) {
     const [ text, setText ] = useState("");
 
     function handleDragStart(event) {
-        event.dataTransfer.setData("item", event.target.id);
+        if(!store.isItemEditActive){
+            event.dataTransfer.setData("item", event.target.id);
+        }
     }
 
     function handleDragOver(event) {
-        event.preventDefault();
+        if(!store.isItemEditActive){
+            event.preventDefault();
+        }
     }
 
     function handleDragEnter(event) {
-        event.preventDefault();
-        setDraggedTo(true);
+        if(!store.isItemEditActive){
+            event.preventDefault();
+            setDraggedTo(true);
+        }
     }
 
     function handleDragLeave(event) {
-        event.preventDefault();
-        setDraggedTo(false);
+        if(!store.isItemEditActive){
+            event.preventDefault();
+            setDraggedTo(false);
+        }
     }
 
     function handleDrop(event) {
-        event.preventDefault();
-        let target = event.target;
-        let targetId = target.id;
-        targetId = targetId.substring(target.id.indexOf("-") + 1);
-        let sourceId = event.dataTransfer.getData("item");
-        sourceId = sourceId.substring(sourceId.indexOf("-") + 1);
-        setDraggedTo(false);
+        if(!store.isItemEditActive){
+            event.preventDefault();
+            let target = event.target;
+            let targetId = target.id;
+            targetId = targetId.substring(target.id.indexOf("-") + 1);
+            let sourceId = event.dataTransfer.getData("item");
+            sourceId = sourceId.substring(sourceId.indexOf("-") + 1);
+            setDraggedTo(false);
 
-        // UPDATE THE LIST
-        store.addMoveItemTransaction(sourceId, targetId);
+            // UPDATE THE LIST
+            store.addMoveItemTransaction(sourceId, targetId);
+        }
     }
     //handle edit
     function handleToggleEdit(event) {
         event.stopPropagation();
-        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
-        document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
-        document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
-        for (let i=0;i<5;i++){
-            if (i!==props.index){
-                document.getElementById("edit-item-" + i + 1).classList.add("top5-button-disabled");
-            }
-        }
-        console.log("edit-item-" + props.index + 1);
+        // document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
+        // document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
+        // document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
+        // for (let i=0;i<5;i++){
+        //     if (i!==props.index){
+        //         document.getElementById("edit-item-" + i + 1).classList.add("top5-button-disabled");
+        //     }
+        // }
         toggleEdit();
     }
 
     function toggleEdit() {
         let newActive = !editActive;
-        // if (newActive) {
-        //     store.setIsItemNameEditActive();
-        // }
+        if (newActive) {
+            store.setIsItemNameEditActive();
+        }
         setEditActive(newActive);
     }
 
@@ -70,8 +79,10 @@ function Top5Item(props) {
         if (event.code === "Enter") {
             store.addChangeItemTranscation(props.index, text);
             //store.changeItemName(props.index,text);
+            // store.loadIdNamePairs();
+            // store.setCurrentList(store.currentList._id);
+            store.setIsItemNameEditActive_false();
             toggleEdit();
-            document.getElementById("close-button").classList.replace("top5-button-disabled","top5-button");
         }
     }
 
@@ -84,10 +95,12 @@ function Top5Item(props) {
     if (draggedTo) {
         itemClass = "top5-item-dragged-to";
     }
-    // let cardStatus = false;
-    // if (store.isItemEditActive) {
-    //     cardStatus = true;
-    // }
+    
+    let cardStatus = false;
+    if (store.isItemEditActive) {
+        cardStatus = true;
+    }
+
     let Itemelement=<div
             id={'item-' + (index + 1)}
             className={itemClass}
@@ -100,6 +113,7 @@ function Top5Item(props) {
         >
             <input
                 type="button"
+                disabled={cardStatus}
                 id={"edit-item-" + index + 1}
                 className="list-card-button"
                 value={"\u270E"}

@@ -12,7 +12,11 @@ import { GlobalStoreContext } from '../store'
 function DeleteModal() {
     const { store } = useContext(GlobalStoreContext);
     let name = "";
+    console.log("22222");
+    console.log(store.currentList);
     if (store.currentList) {
+        console.log("22222");
+        console.log(store.currentList);
         name = store.currentList.name;
     }
     function handleDeleteList(event) {

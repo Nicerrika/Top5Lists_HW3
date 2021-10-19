@@ -12,16 +12,51 @@ function EditToolbar() {
     const history = useHistory();
 
     let enabledButtonClass = "top5-button";
+    let CanRedo=false;
+    let CanUndo=false;
+    let CanClose=false;
+
     function handleUndo() {
-        store.undo();
+        if(CanUndo){
+            store.undo();
+        }
     }
     function handleRedo() {
-        store.redo();
+        if(CanRedo){
+            store.redo();
+        }
     }
     function handleClose() {
-        history.push("/");
-        store.closeCurrentList();
+        if(CanClose){
+            history.push("/");
+            store.closeCurrentList();
+        }
     }
+
+    if(store.isListNameEditActive || store.isItemEditActive || !store.HastransactionToUndo() || store.currentList === null){
+        CanUndo = false;
+    }
+    else{
+        CanUndo = true;
+    }
+
+    if(store.isListNameEditActive || store.isItemEditActive || !store.HastransactionToRedo() || store.currentList === null){
+        CanRedo = false;
+    }
+    else{
+        CanRedo = true;
+    }
+
+    if(store.isListNameEditActive || store.isItemEditActive || store.currentList === null){
+        console.log("Can not Close");
+        CanClose = false;
+    }
+    else{
+        console.log("Current List");
+        console.log(store.currentList);
+        CanClose = true;
+    }
+
     let editStatus = false;
     if (store.isListNameEditActive) {
         editStatus = true;
@@ -32,21 +67,21 @@ function EditToolbar() {
                 disabled={editStatus}
                 id='undo-button'
                 onClick={handleUndo}
-                className={enabledButtonClass}>
+                className={CanUndo ? "top5-button" : "top5-button-disabled"}>
                 &#x21B6;
             </div>
             <div
                 disabled={editStatus}
                 id='redo-button'
                 onClick={handleRedo}
-                className={enabledButtonClass}>
+                className={CanRedo ? "top5-button" : "top5-button-disabled"}>
                 &#x21B7;
             </div>
             <div
                 disabled={editStatus}
                 id='close-button'
                 onClick={handleClose}
-                className={enabledButtonClass}>
+                className={CanClose ? "top5-button" : "top5-button-disabled"}>
                 &#x24E7;
             </div>
         </div>

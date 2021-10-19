@@ -140,7 +140,7 @@ body {
   overflow: scroll;
 }
 
-.list-card, .selected-list-card, .unselected-list-card {
+.list-card, .selected-list-card, .unselected-list-card, .item-card{
   font-size: 18pt;
   margin: 10px;
   padding: 20px;
@@ -148,6 +148,13 @@ body {
 }
 
 .list-card:aria-disabled,.list-card[aria-disabled] {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
+  pointer-events: none;
+}
+
+.item-card:aria-disabled,.item-card[aria-disabled] {
   border: 1px solid #999999;
   background-color: #cccccc;
   color: #666666;

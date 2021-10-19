@@ -19,8 +19,10 @@ export const GlobalStoreActionType = {
     CLOSE_CURRENT_LIST: "CLOSE_CURRENT_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
-    //SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
-    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE"
+    SET_ITEM_NAME_EDIT_ACTIVE: "SET_ITEM_NAME_EDIT_ACTIVE",
+    SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
+    ADD_NEW_COUNTER:"ADD_NEW_COUNTER",
+    SET_ITEM_NAME_EDIT_ACTIVE_FALSE:"SET_ITEM_NAME_EDIT_ACTIVE_FALSE"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -48,10 +50,10 @@ export const useGlobalStore = () => {
             case GlobalStoreActionType.CHANGE_LIST_NAME: {
                 return setStore({
                     idNamePairs: payload.idNamePairs,
-                    currentList: payload.top5List,
+                    currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 });
             }
@@ -62,7 +64,7 @@ export const useGlobalStore = () => {
                     currentList: payload.top5List,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 });
             }
@@ -73,7 +75,17 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
+                    listMarkedForDeletion: null,
+                })
+            }
+            case GlobalStoreActionType.ADD_NEW_COUNTER: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: null,
+                    newListCounter: payload,
+                    isListNameEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 })
             }
@@ -84,7 +96,7 @@ export const useGlobalStore = () => {
                     currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 });
             }
@@ -95,7 +107,7 @@ export const useGlobalStore = () => {
                     currentList: payload,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 });
             }
@@ -103,33 +115,42 @@ export const useGlobalStore = () => {
             case GlobalStoreActionType.SET_LIST_NAME_EDIT_ACTIVE: {
                 return setStore({
                     idNamePairs: store.idNamePairs,
-                    currentList: payload,
+                    currentList: null,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: true,
-                    //isItemEditActive: false,
+                    isItemEditActive: false,
                     listMarkedForDeletion: null,
                 });
             }
-            // START EDITING A ITEM NAME
-            // case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE: {
-            //     return setStore({
-            //         idNamePairs: store.idNamePairs,
-            //         currentList: store.currentList,
-            //         newListCounter: store.newListCounter,
-            //         isListNameEditActive: false,
-            //         isItemEditActive: false,
-            //         listMarkedForDeletion: null,
-            //         isItemEditActive: true
-            //     });
-            // }
+            //START EDITING A ITEM NAME
+            case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    listMarkedForDeletion: null,
+                    isItemEditActive: true
+                });
+            }
+            case GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE_FALSE:{
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
+                    newListCounter: store.newListCounter,
+                    isListNameEditActive: false,
+                    listMarkedForDeletion: null,
+                    isItemEditActive: false
+                });
+            }
             case GlobalStoreActionType.Delete_Marked_List:{
                 return setStore({
                     idNamePairs: store.idNamePairs,
-                    currentList: null,
+                    currentList: payload,
                     newListCounter: store.newListCounter,
                     isListNameEditActive: false,
                     isItemEditActive: false,
-                    listMarkedForDeletion: payload
+                    listMarkedForDeletion: payload,
                 });
             }
             default:
@@ -145,39 +166,41 @@ export const useGlobalStore = () => {
         // GET THE LIST
         console.log(newName);
         if (newName!==""){
-        async function asyncChangeListName(id) {
-            let response = await api.getTop5ListById(id);
-            if (response.data.success) {
-                let top5List = response.data.top5List;
-                top5List.name = newName;
-                async function updateList(top5List) {
-                    response = await api.updateTop5ListById(top5List._id, top5List);
-                    if (response.data.success) {
-                        async function getListPairs(top5List) {
-                            response = await api.getTop5ListPairs();
-                            if (response.data.success) {
-                                let pairsArray = response.data.idNamePairs;
-                                storeReducer({
-                                    type: GlobalStoreActionType.CHANGE_LIST_NAME,
-                                    payload: {
-                                        idNamePairs: pairsArray,
-                                        top5List: top5List
-                                    }
-                                });
+            async function asyncChangeListName(id) {
+                let response = await api.getTop5ListById(id);
+                if (response.data.success) {
+                    let top5List = response.data.top5List;
+                    top5List.name = newName;
+                    async function updateList(top5List) {
+                        response = await api.updateTop5ListById(top5List._id, top5List);
+                        if (response.data.success) {
+                            async function getListPairs(top5List) {
+                                response = await api.getTop5ListPairs();
+                                if (response.data.success) {
+                                    let pairsArray = response.data.idNamePairs;
+                                    storeReducer({
+                                        type: GlobalStoreActionType.CHANGE_LIST_NAME,
+                                        payload: {
+                                            idNamePairs: pairsArray,
+                                            top5List: top5List
+                                        }
+                                    });
+                                }
                             }
+                            getListPairs(top5List);
                         }
-                        getListPairs(top5List);
                     }
+                    updateList(top5List);
                 }
-                updateList(top5List);
             }
+            asyncChangeListName(id);
         }
-        asyncChangeListName(id);
-    }
+        // store.closeCurrentList();
     }
     //This Function processes changind the item name
     store.changeItemName = function (index, newName) {
         // GET THE LIST
+        if(newName!==""){
         async function asyncChangeItemName() {
             let  top5List= store.currentList;
             top5List.items[index]=newName;
@@ -189,7 +212,7 @@ export const useGlobalStore = () => {
                             if (response.data.success) {
                                 let pairsArray = response.data.idNamePairs;
                                 storeReducer({
-                                    type: GlobalStoreActionType.CHANGE_LIST_NAME,
+                                    type: GlobalStoreActionType.CHANGE_ITEM_NAME,
                                     payload: {
                                         idNamePairs: pairsArray,
                                         top5List: top5List
@@ -204,6 +227,7 @@ export const useGlobalStore = () => {
         }
         asyncChangeItemName();
     }
+    }
 
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
@@ -211,15 +235,16 @@ export const useGlobalStore = () => {
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
         });
-        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
+        //document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
         tps.clearAllTransactions();
-        store.UpdateDisableControl();
+        //store.UpdateDisableControl();
     }
     // This Function is to create new list
     store.CreateNewList = function (){
         async function asyncCreateNewList() {
+            console.log(store.newListCounter);
             let NewList={
-                "name": "Untitled",
+                "name": "Untitled"+store.newListCounter,
                 "items":[
                     "?",
                     "?",
@@ -231,6 +256,10 @@ export const useGlobalStore = () => {
             const response = await api.createTop5List(NewList);
             if (response.data.success) {
                 console.log(response);
+                storeReducer({
+                    type: GlobalStoreActionType.ADD_NEW_COUNTER,
+                    payload: store.newListCounter++
+                });
                 store.loadIdNamePairs();
                 store.setCurrentList(response.data.top5List._id);
             }
@@ -252,8 +281,8 @@ export const useGlobalStore = () => {
                 console.log("API FAILED TO GET THE LIST PAIRS");
             }
         }
-        store.UpdateDisableControl();
-        document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
+        //store.UpdateDisableControl();
+        //document.getElementById("close-button").classList.replace("top5-button","top5-button-disabled");
         asyncLoadIdNamePairs();
     }
 
@@ -280,14 +309,14 @@ export const useGlobalStore = () => {
             }
             asyncSetCurrentList(id);
         }
-        store.UpdateDisableControl();
-        document.getElementById("close-button").classList.replace("top5-button-disabled","top5-button");
-        console.log(store.currentList);
+        //store.UpdateDisableControl();
+        //document.getElementById("close-button").classList.replace("top5-button-disabled","top5-button");
+        //console.log(store.currentList);
     }
     store.addMoveItemTransaction = function (start, end) {
         let transaction = new MoveItem_Transaction(store, start, end);
         tps.addTransaction(transaction);
-        store.UpdateDisableControl();
+        //store.UpdateDisableControl();
     }
     store.addChangeItemTranscation = function (index,newName){
         let oldName=store.currentList.items[index];
@@ -295,12 +324,12 @@ export const useGlobalStore = () => {
             let transaction =new ChangeItem_Transaction(store,index,oldName,newName);
             tps.addTransaction(transaction);
         }
-        store.UpdateDisableControl();
-        for (let i=0;i<5;i++){
-            if(index!=i){
-                document.getElementById("edit-item-" + i + 1).classList.remove("top5-button-disabled");
-            }
-        }
+        //store.UpdateDisableControl();
+        // for (let i=0;i<5;i++){
+        //     if(index!=i){
+        //         document.getElementById("edit-item-" + i + 1).classList.remove("top5-button-disabled");
+        //     }
+        // }
     }
     store.moveItem = function (start, end) {
         start -= 1;
@@ -337,31 +366,46 @@ export const useGlobalStore = () => {
     }
     store.undo = function () {
         tps.undoTransaction();
-        store.UpdateDisableControl();
+        //store.UpdateDisableControl();
     }
     store.redo = function () {
         tps.doTransaction();
-        store.UpdateDisableControl();
+        //store.UpdateDisableControl();
+    }
+
+    store.HastransactionToUndo = function (){
+        return tps.hasTransactionToUndo();
+    }
+
+    store.HastransactionToRedo = function (){
+        return tps.hasTransactionToRedo();
     }
 
     // THIS FUNCTION ENABLES THE PROCESS OF EDITING A LIST NAME
     store.setIsListNameEditActive = function () {
         storeReducer({
             type: GlobalStoreActionType.SET_LIST_NAME_EDIT_ACTIVE,
-            payload: null
+            payload: store.currentList
         });
     }
 
-    // store.setIsItemNameEditActive = function () {
-    //     console.log("lol");
-    //     storeReducer({
-    //         type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE,
-    //         payload: null
-    //     });
-    // }
+    store.setIsItemNameEditActive = function () {
+        storeReducer({
+            type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE,
+            payload: store.currentList
+        });
+    }
+
+    store.setIsItemNameEditActive_false = function () {
+        storeReducer({
+            type: GlobalStoreActionType.SET_ITEM_NAME_EDIT_ACTIVE_FALSE,
+            payload: store.currentList
+        });
+    }
 
     // THIS FUNCTION IS TO SHOW THE delete
     store.deleteMarkedList = function(){
+        console.log(store.listMarkedForDeletion);
         let id=store.listMarkedForDeletion._id
         console.log(id);
         async function asyncdeleteMarkedList(id) {
@@ -383,38 +427,40 @@ export const useGlobalStore = () => {
     store.hideDeleteListModal = function(){
         let modal = document.getElementById("delete-modal");
         modal.classList.remove("is-visible");
+        store.closeCurrentList();
     }
 
     store.DeleteList = function(id){
         store.ShowDeleteListModal();
         async function asyncDeleteList(id) {
             let response= await api.getTop5ListById(id);
-            let top5List=response.data.top5List
+            let top5List1=response.data.top5List
             if (response.data.success){
                 storeReducer({
                     type:GlobalStoreActionType.Delete_Marked_List,
-                    payload:top5List
+                    payload:top5List1
                 });
+                console.log(store.listMarkedForDeletion)
             }
         }
         asyncDeleteList(id)
     }
 
-    store.UpdateDisableControl = function(){
-        if(tps.hasTransactionToRedo()){
-            document.getElementById("redo-button").classList.replace("top5-button-disabled","top5-button");
-        }
-        else{
-            document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
-        }
+    // store.UpdateDisableControl = function(){
+    //     if(tps.hasTransactionToRedo()){
+    //         document.getElementById("redo-button").classList.replace("top5-button-disabled","top5-button");
+    //     }
+    //     else{
+    //         document.getElementById("redo-button").classList.replace("top5-button","top5-button-disabled");
+    //     }
 
-        if(tps.hasTransactionToUndo()){
-            document.getElementById("undo-button").classList.replace("top5-button-disabled","top5-button");
-        }
-        else{
-            document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
-        }
-    }
+    //     if(tps.hasTransactionToUndo()){
+    //         document.getElementById("undo-button").classList.replace("top5-button-disabled","top5-button");
+    //     }
+    //     else{
+    //         document.getElementById("undo-button").classList.replace("top5-button","top5-button-disabled");
+    //     }
+    // }
 
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };

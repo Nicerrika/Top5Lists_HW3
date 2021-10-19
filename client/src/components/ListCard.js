@@ -16,13 +16,15 @@ function ListCard(props) {
     const { idNamePair, selected } = props;
 
     function handleLoadList(event) {
-        if (!event.target.disabled) {
-            let _id = event.target.id;
-            if (_id.indexOf('list-card-text-') >= 0)
-                _id = ("" + _id).substring("list-card-text-".length);
+        if(!store.isListNameEditActive){
+            if (!event.target.disabled) {
+                let _id = event.target.id;
+                if (_id.indexOf('list-card-text-') >= 0)
+                    _id = ("" + _id).substring("list-card-text-".length);
 
-            // CHANGE THE CURRENT LIST
-            store.setCurrentList(_id);
+                // CHANGE THE CURRENT LIST
+                store.setCurrentList(_id);
+            }
         }
     }
 
@@ -43,6 +45,7 @@ function ListCard(props) {
         if (event.code === "Enter") {
             let id = event.target.id.substring("list-".length);
             store.changeListName(id, text);
+            store.closeCurrentList();
             toggleEdit();
         }
     }
@@ -76,7 +79,7 @@ function ListCard(props) {
                 {idNamePair.name}
             </span>
             <input
-                disabled={cardStatus}
+                disabled={store.isListNameEditActive}
                 type="button"
                 id={"delete-list-" + idNamePair._id}
                 className="list-card-button"
@@ -84,7 +87,7 @@ function ListCard(props) {
                 value={"\u2715"}
             />
             <input
-                disabled={cardStatus}
+                disabled={store.isListNameEditActive}
                 type="button"
                 id={"edit-list-" + idNamePair._id}
                 className="list-card-button"
